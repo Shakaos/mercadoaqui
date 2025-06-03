@@ -8,6 +8,7 @@ import { UpdateProdutoDto } from './dto/update-produto.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { File as MulterFile } from 'multer';
 
 @Controller('produtos')
 export class ProdutoController {
@@ -93,7 +94,7 @@ export class ProdutoController {
     },
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   }))
-  async uploadImagem(@UploadedFile() file: Express.Multer.File) {
+  async uploadImagem(@UploadedFile() file: MulterFile){
     return { filename: file.filename, path: file.path };
   }
 }
