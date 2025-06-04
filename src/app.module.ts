@@ -13,6 +13,9 @@ import { Produto } from './modules/produtos/produto.entity';
 import { Usuario } from './modules/usuarios/usuario.entity';
 import { Preco } from './modules/precos/preco.entity';
 import { Mercado } from './modules/mercados/mercado.entity';
+import { CestaBasica } from './modules/cestas/cesta.entity';
+import { Lista } from './modules/listas/lista.entity';
+import { ItemLista } from './modules/listas/item-lista.entity';
 
 @Module({
   imports: [
@@ -27,7 +30,7 @@ import { Mercado } from './modules/mercados/mercado.entity';
       username: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
-      entities: [Usuario, Produto , Preco , Mercado],
+      entities: [Usuario, Produto, Preco, Mercado, CestaBasica, Lista, ItemLista],
       logging: true,
       synchronize: true, // true só em desenvolvimento
     }),
