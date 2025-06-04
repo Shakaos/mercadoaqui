@@ -13,4 +13,10 @@ export class Produto {
 
   @Column({ nullable: true })
   tipo: string;
+
+  @Column({ default: false })
+  aprovado: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  imagem_base64: string;
 }
