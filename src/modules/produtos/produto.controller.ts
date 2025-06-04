@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, UsePipes, ValidationPipe, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, UsePipes, ValidationPipe, UploadedFile, UseInterceptors, UseGuards, Put } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Produto } from './produto.entity';
@@ -8,7 +8,8 @@ import { UpdateProdutoDto } from './dto/update-produto.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { File as MulterFile } from 'multer';
+import { JwtAuthGuard } from '../usuarios/jwt-auth.guard';
+import { Roles } from '../usuarios/roles.decorator';
 
 @Controller('produtos')
 export class ProdutoController {
@@ -21,7 +22,7 @@ export class ProdutoController {
 
   @Get()
   async listarTodos() {
-    return this.produtoRepo.find();
+    return this.produtoRepo.find({ where: { aprovado: true } });
   }
 
   @Get('com-precos')
@@ -44,9 +45,10 @@ export class ProdutoController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
   async criar(@Body() body: CreateProdutoDto) {
-    const novo = this.produtoRepo.create(body);
+    const novo = this.produtoRepo.create({ ...body, aprovado: false });
     return this.produtoRepo.save(novo);
   }
 
@@ -94,7 +96,22 @@ export class ProdutoController {
     },
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   }))
-  async uploadImagem(@UploadedFile() file: MulterFile){
+  async uploadImagem(@UploadedFile() file: any) {
     return { filename: file.filename, path: file.path };
+  }
+
+  @Get('pendentes')
+  @UseGuards(JwtAuthGuard)
+  @Roles('funcionario')
+  async listarPendentes() {
+    return this.produtoRepo.find({ where: { aprovado: false } });
+  }
+
+  @Put(':id/aprovar')
+  @UseGuards(JwtAuthGuard)
+  @Roles('funcionario')
+  async aprovarProduto(@Param('id') id: string) {
+    await this.produtoRepo.update(id, { aprovado: true });
+    return { message: 'Produto aprovado com sucesso' };
   }
 }
