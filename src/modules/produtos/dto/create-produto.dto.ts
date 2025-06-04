@@ -10,4 +10,7 @@ export class CreateProdutoDto {
   @IsOptional()
   @IsString()
   tipo?: string;
+
+  @IsString()
+  imagem_base64: string;
 } 
