@@ -26,26 +26,23 @@ export class UsuariosService {
 
     return {
       token,
-      usuario: {
-        id: usuario.id,
-        nome: usuario.nome,
-        email: usuario.email,
-      },
+      tipo: usuario.tipo,
     };
   }
 
-  async registrar(nome: string, email: string, senha: string) {
+  async registrar(nome: string, email: string, senha: string, tipo: string = 'cliente') {
     const existe = await this.usuariosRepo.findOne({ where: { email } });
     if (existe) throw new Error('Email já cadastrado');
 
     const hash = await bcrypt.hash(senha, 10);
-    const novo = this.usuariosRepo.create({ nome, email, senha: hash });
+    const novo = this.usuariosRepo.create({ nome, email, senha: hash, tipo });
     const salvo = await this.usuariosRepo.save(novo);
 
     return {
       id: salvo.id,
       nome: salvo.nome,
       email: salvo.email,
+      tipo: salvo.tipo,
     };
   }
 
