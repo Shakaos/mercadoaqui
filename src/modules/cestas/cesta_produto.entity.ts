@@ -18,4 +18,7 @@ export class CestaProduto {
   // Opcional: quantidade do produto na cesta
   @Column({ type: 'int', default: 1 })
   quantidade: number;
+
+  @Column('decimal', { precision: 10, scale: 2 })
+  preco: number;
 } 
