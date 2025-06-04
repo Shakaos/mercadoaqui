@@ -10,4 +10,7 @@ export class CreateUsuarioDto {
   @IsString()
   @MinLength(6)
   senha: string;
+
+  @IsString()
+  tipo: string;
 } 
