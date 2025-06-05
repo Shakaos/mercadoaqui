@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, UsePipes, ValidationPipe, UploadedFile, UseInterceptors, UseGuards, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, UsePipes, ValidationPipe, UploadedFile, UseInterceptors, UseGuards, Put, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Produto } from './produto.entity';
@@ -109,7 +109,12 @@ export class ProdutoController {
   @Put(':id/aprovar')
   @UseGuards(JwtAuthGuard)
   async aprovarProduto(@Param('id') id: string) {
-    await this.produtoRepo.update(id, { aprovado: true });
-    return { message: 'Produto aprovado com sucesso' };
+    const produto = await this.produtoRepo.findOne({ where: { id: Number(id) } });
+    if (!produto) {
+      throw new NotFoundException('Produto não encontrado');
+    }
+    produto.aprovado = true;
+    await this.produtoRepo.save(produto);
+    return { message: 'Produto aprovado com sucesso', produto };
   }
 }
