@@ -25,7 +25,6 @@ export class CestaController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @Roles('funcionario')
   async criarCesta(@Body() body: { mercadoId: number, produtos: { produtoId: number, preco: number, quantidade?: number }[] }) {
     const { mercadoId, produtos } = body;
     const mercado = await this.mercadoRepo.findOne({ where: { id: mercadoId } });
