@@ -26,7 +26,12 @@ export class UsuariosService {
 
     return {
       token,
-      tipo: usuario.tipo,
+      usuario: {
+        id: usuario.id,
+        nome: usuario.nome,
+        email: usuario.email,
+        tipo: usuario.tipo,
+      }
     };
   }
 
