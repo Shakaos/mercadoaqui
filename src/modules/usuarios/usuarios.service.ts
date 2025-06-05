@@ -30,12 +30,12 @@ export class UsuariosService {
     };
   }
 
-  async registrar(nome: string, email: string, senha: string, tipo: string = 'cliente') {
+  async registrar(nome: string, email: string, senha: string) {
     const existe = await this.usuariosRepo.findOne({ where: { email } });
     if (existe) throw new Error('Email já cadastrado');
 
     const hash = await bcrypt.hash(senha, 10);
-    const novo = this.usuariosRepo.create({ nome, email, senha: hash, tipo });
+    const novo = this.usuariosRepo.create({ nome, email, senha: hash, tipo: 'cliente' });
     const salvo = await this.usuariosRepo.save(novo);
 
     return {
