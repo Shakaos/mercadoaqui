@@ -16,7 +16,7 @@ export class Usuario {
   senha: string;
 
   @Column({ default: 'cliente' })
-  tipo: string;
+  tipo: string; // Sempre será 'cliente'
 
   @CreateDateColumn({ name: 'criado_em' })
   criadoEm: Date;
