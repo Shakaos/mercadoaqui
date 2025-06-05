@@ -102,14 +102,12 @@ export class ProdutoController {
 
   @Get('pendentes')
   @UseGuards(JwtAuthGuard)
-  @Roles('funcionario')
   async listarPendentes() {
     return this.produtoRepo.find({ where: { aprovado: false } });
   }
 
   @Put(':id/aprovar')
   @UseGuards(JwtAuthGuard)
-  @Roles('funcionario')
   async aprovarProduto(@Param('id') id: string) {
     await this.produtoRepo.update(id, { aprovado: true });
     return { message: 'Produto aprovado com sucesso' };
