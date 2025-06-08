@@ -16,7 +16,7 @@ export class Preco {
   mercado: Mercado;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  preco: number;
+  valor: number;
 
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   atualizado_em: Date;
