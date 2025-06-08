@@ -20,11 +20,11 @@ export class Produto {
   @Column()
   categoria: string;
 
-  @Column()
-  tipo: string;
+  @Column({ nullable: true }) // <-- Tornar opcional no banco
+  tipo?: string;
 
   @Column({ type: 'longtext', nullable: true })
-  imagem_base64: string;
+  imagem_base64?: string;
 
   @ManyToOne(() => Mercado)
   @JoinColumn({ name: 'mercado_id' })
