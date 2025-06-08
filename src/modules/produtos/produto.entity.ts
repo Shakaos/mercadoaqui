@@ -21,6 +21,9 @@ export class Produto {
   @Column({ type: 'text', nullable: true })
   imagem_base64: string;
 
+  @OneToMany(() => Preco, (preco) => preco.produto)
+  precos: Preco[];
+
   @ManyToOne(() => Mercado, { eager: true, nullable: false })
   @JoinColumn({ name: 'mercado_id' })
   mercado: Mercado;
