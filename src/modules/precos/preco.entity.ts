@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Produto } from '../produtos/produto.entity';
 import { Mercado } from '../mercados/mercado.entity';
 
@@ -7,7 +13,7 @@ export class Preco {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Produto)
+  @ManyToOne(() => Produto, (produto) => produto.precos)
   @JoinColumn({ name: 'produto_id' })
   produto: Produto;
 
