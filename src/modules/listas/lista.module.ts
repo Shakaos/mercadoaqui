@@ -6,9 +6,10 @@ import { Usuario } from '../usuarios/usuario.entity';
 import { ItemLista } from './item-lista.entity';
 import { Produto } from '../produtos/produto.entity';
 import { Preco } from '../precos/preco.entity';
+import { Mercado } from '../mercados/mercado.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Lista, ItemLista, Usuario, Produto, Preco])],
+  imports: [TypeOrmModule.forFeature([Lista, ItemLista, Usuario, Produto, Preco, Mercado])],
   controllers: [ListaController],
 })
 export class ListaModule {} 
