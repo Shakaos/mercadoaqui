@@ -37,7 +37,7 @@ export class ProdutoController {
     private mercadoRepo: Repository<Mercado>,
   ) {}
 
-  @Get('com-precos') // Coloque essa rota ANTES do ':id'
+  @Get('com-precos')
   async listarComPrecos() {
     const produtos = await this.produtoRepo.find();
     const precos = await this.precoRepo.find({ relations: ['produto', 'mercado'] });
@@ -84,15 +84,27 @@ export class ProdutoController {
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
   async criar(@Body() body: CreateProdutoDto) {
-    const { mercado_id, ...dados } = body;
+    const { mercado_id, preco, ...dados } = body;
 
     const mercado = await this.mercadoRepo.findOne({ where: { id: mercado_id } });
     if (!mercado) {
       throw new NotFoundException('Mercado não encontrado');
     }
 
-    const novo = this.produtoRepo.create({ ...dados, mercado });
-    return this.produtoRepo.save(novo);
+    const novoProduto = this.produtoRepo.create({ ...dados, mercado });
+    const produtoSalvo = await this.produtoRepo.save(novoProduto);
+
+    const precoCriado = this.precoRepo.create({
+      produto: produtoSalvo,
+      mercado: mercado,
+      valor: preco
+    });
+    await this.precoRepo.save(precoCriado);
+
+    return {
+      ...produtoSalvo,
+      preco: precoCriado.valor
+    };
   }
 
   @Patch(':id')
@@ -143,7 +155,7 @@ export class ProdutoController {
         }
         cb(null, true);
       },
-      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+      limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
   async uploadImagem(@UploadedFile() file: any) {
