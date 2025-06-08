@@ -81,10 +81,10 @@ export class ListaController {
 
     if (!mercado) throw new Error('Mercado não encontrado');
 
-    // Criar a lista sem campo "total"
     const novaLista = this.listaRepo.create({
       nome: `Comparação - ${new Date().toLocaleString('pt-BR')}`,
       mercado: mercado,
+      total: dados.total,
       criada_em: new Date(),
     });
 
