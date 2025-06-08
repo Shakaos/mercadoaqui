@@ -1,17 +1,8 @@
+// produto.controller.ts
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Patch,
-  Delete,
-  UsePipes,
-  ValidationPipe,
-  UploadedFile,
-  UseInterceptors,
-  UseGuards,
-  NotFoundException,
+  Controller, Get, Post, Body, Param, Patch, Delete,
+  UsePipes, ValidationPipe, UploadedFile, UseInterceptors,
+  UseGuards, NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -42,26 +33,27 @@ export class ProdutoController {
   }
 
   @Get('com-precos')
-async listarComPrecos() {
-  const produtos = await this.produtoRepo.find({ relations: ['mercado'] });
-  const precos = await this.precoRepo.find({ relations: ['produto', 'mercado'] });
+  async listarComPrecos() {
+    const produtos = await this.produtoRepo.find({ relations: ['mercado'] });
+    const precos = await this.precoRepo.find({ relations: ['produto', 'mercado'] });
 
-  return produtos.map(prod => {
-    const relacionados = precos.filter(p => p.produto.id === prod.id);
-    const menorPreco = relacionados.sort((a, b) => a.valor - b.valor)[0];
+    return produtos.map(prod => {
+      const relacionados = precos.filter(p => p.produto.id === prod.id);
+      const menorPreco = relacionados.sort((a, b) => a.valor - b.valor)[0];
 
-    return {
-      id: prod.id,
-      nome: prod.nome,
-      categoria: prod.categoria,
-      tipo: prod.tipo,
-      preco: menorPreco?.valor ?? null,
-      mercado: menorPreco?.mercado ? {
-        id: menorPreco.mercado.id,
-        nome: menorPreco.mercado.nome
-      } : null,
-    };
-  });
+      return {
+        id: prod.id,
+        nome: prod.nome,
+        categoria: prod.categoria,
+        tipo: prod.tipo,
+        preco: menorPreco?.valor ?? null,
+        mercado: menorPreco?.mercado ? {
+          id: menorPreco.mercado.id,
+          nome: menorPreco.mercado.nome
+        } : null,
+      };
+    });
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -70,9 +62,7 @@ async listarComPrecos() {
     const { mercado_id, ...dados } = body;
 
     const mercado = await this.mercadoRepo.findOne({ where: { id: mercado_id } });
-    if (!mercado) {
-      throw new NotFoundException('Mercado não encontrado');
-    }
+    if (!mercado) throw new NotFoundException('Mercado não encontrado');
 
     const novo = this.produtoRepo.create({ ...dados, mercado });
     return this.produtoRepo.save(novo);
@@ -121,7 +111,7 @@ async listarComPrecos() {
         }
         cb(null, true);
       },
-      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+      limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
   async uploadImagem(@UploadedFile() file: any) {
