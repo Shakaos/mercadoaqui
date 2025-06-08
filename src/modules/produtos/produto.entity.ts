@@ -1,4 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity, PrimaryGeneratedColumn, Column,
+  ManyToOne, JoinColumn
+} from 'typeorm';
+import { Mercado } from '../mercados/mercado.entity';
 
 @Entity('produtos')
 export class Produto {
@@ -14,9 +18,10 @@ export class Produto {
   @Column({ nullable: true })
   tipo: string;
 
-  @Column({ default: false })
-  aprovado: boolean;
-
   @Column({ type: 'text', nullable: true })
   imagem_base64: string;
+
+  @ManyToOne(() => Mercado, { eager: true, nullable: false })
+  @JoinColumn({ name: 'mercado_id' })
+  mercado: Mercado;
 }
