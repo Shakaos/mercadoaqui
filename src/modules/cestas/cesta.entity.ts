@@ -17,6 +17,6 @@ export class CestaBasica {
   @Column('decimal', { precision: 10, scale: 2 })
   preco_total: number;
 
-  @OneToMany(() => CestaProduto, cestaProduto => cestaProduto.cesta, { eager: true })
+  @OneToMany(() => CestaProduto, cestaProduto => cestaProduto.cesta, { cascade: true })
   produtos: CestaProduto[];
 }
