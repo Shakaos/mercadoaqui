@@ -20,23 +20,22 @@ export class ProdutoService {
   async listarTodos(): Promise<Produto[]> {
     return this.produtoRepo.find();
   }
+async listarComPrecos(): Promise<any[]> {
+  const produtos = await this.produtoRepo.find();
+  const precos = await this.precoRepo.find({ relations: ['produto', 'mercado'] });
 
-  async listarComPrecos(): Promise<any[]> {
-    const produtos = await this.produtoRepo.find();
-    const precos = await this.precoRepo.find({ relations: ['produto', 'mercado'] });
+  return produtos.map(prod => {
+    const relacionados = precos.filter(p => p.produto.id === prod.id);
+    const menorPreco = relacionados.sort((a, b) => a.valor - b.valor)[0];
 
-    return produtos.map(prod => {
-      const relacionados = precos.filter(p => p.produto.id === prod.id);
-      const menorPreco = relacionados.sort((a, b) => a.valor - b.valor)[0];
+    return {
+      id: prod.id,
+      nome: prod.nome,
+      categoria: prod.categoria,
+      tipo: prod.tipo,
       preco: menorPreco?.valor ?? null,
-      return {
-        id: prod.id,
-        nome: prod.nome,
-        categoria: prod.categoria,
-        tipo: prod.tipo,
-        preco: menorPreco?.preco ?? null,
-        mercado: menorPreco?.mercado?.nome ?? null
-      };
-    });
+      mercado: menorPreco?.mercado?.nome ?? null,
+    };
+  });
   }
 }
