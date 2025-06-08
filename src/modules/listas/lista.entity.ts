@@ -14,6 +14,9 @@ export class Lista {
   @Column({ type: 'varchar', length: 100 })
   nome: string;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  total: number;
+
   @ManyToOne(() => Mercado, { eager: true })
   mercado: Mercado;
 
