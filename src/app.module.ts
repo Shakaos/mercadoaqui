@@ -34,7 +34,7 @@ import { ItemLista } from './modules/listas/item-lista.entity';
       database: process.env.DB_NAME,
       entities: [Usuario, Produto, Preco, Mercado, CestaBasica, CestaProduto, Lista, ItemLista],
       logging: true,
-      synchronize: true, // ATIVAR TEMPORARIAMENTE para criar a tabela
+      process.env.NODE_ENV !== 'production',
     }),
 
     // Módulo JWT global
