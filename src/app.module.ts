@@ -8,6 +8,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { ProdutoModule } from './modules/produtos/produto.module';
 import { CestaModule } from './modules/cestas/cesta.module';
 import { ListaModule } from './modules/listas/lista.module';
+import { MercadoModule } from './modules/mercados/mercado.module';
 
 import { Produto } from './modules/produtos/produto.entity';
 import { Usuario } from './modules/usuarios/usuario.entity';
@@ -47,6 +48,7 @@ import { ItemLista } from './modules/listas/item-lista.entity';
     ProdutoModule,
     CestaModule,
     ListaModule,
+    MercadoModule,
   ],
 })
 export class AppModule {}
