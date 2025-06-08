@@ -11,7 +11,6 @@ import {
   UploadedFile,
   UseInterceptors,
   UseGuards,
-  Put,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -24,6 +23,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { JwtAuthGuard } from '../usuarios/jwt-auth.guard';
+import { Mercado } from '../mercados/mercado.entity';
 
 @Controller('produtos')
 export class ProdutoController {
@@ -32,16 +32,18 @@ export class ProdutoController {
     private produtoRepo: Repository<Produto>,
     @InjectRepository(Preco)
     private precoRepo: Repository<Preco>,
+    @InjectRepository(Mercado)
+    private mercadoRepo: Repository<Mercado>,
   ) {}
 
   @Get()
   async listarTodos() {
-    return this.produtoRepo.find();
+    return this.produtoRepo.find({ relations: ['mercado'] });
   }
 
   @Get('com-precos')
   async listarComPrecos() {
-    const produtos = await this.produtoRepo.find();
+    const produtos = await this.produtoRepo.find({ relations: ['mercado'] });
     const precos = await this.precoRepo.find({ relations: ['produto', 'mercado'] });
 
     return produtos.map(prod => {
@@ -53,7 +55,7 @@ export class ProdutoController {
         categoria: prod.categoria,
         tipo: prod.tipo,
         preco: menorPreco?.preco ?? null,
-        mercado: menorPreco?.mercado?.nome ?? null,
+        mercado: prod.mercado ? { id: prod.mercado.id, nome: prod.mercado.nome } : null,
       };
     });
   }
@@ -62,13 +64,20 @@ export class ProdutoController {
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
   async criar(@Body() body: CreateProdutoDto) {
-    const novo = this.produtoRepo.create(body);
+    const { mercado_id, ...dados } = body;
+
+    const mercado = await this.mercadoRepo.findOne({ where: { id: mercado_id } });
+    if (!mercado) {
+      throw new NotFoundException('Mercado não encontrado');
+    }
+
+    const novo = this.produtoRepo.create({ ...dados, mercado });
     return this.produtoRepo.save(novo);
   }
 
   @Get(':id')
   async buscarPorId(@Param('id') id: string) {
-    return this.produtoRepo.findOne({ where: { id: Number(id) } });
+    return this.produtoRepo.findOne({ where: { id: Number(id) }, relations: ['mercado'] });
   }
 
   @Patch(':id')
