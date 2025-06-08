@@ -1,8 +1,13 @@
 import {
-  Entity, PrimaryGeneratedColumn, Column,
-  ManyToOne, JoinColumn
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { Mercado } from '../mercados/mercado.entity';
+import { Preco } from '../precos/preco.entity';
 
 @Entity('produtos')
 export class Produto {
@@ -15,16 +20,16 @@ export class Produto {
   @Column()
   categoria: string;
 
-  @Column({ nullable: true })
+  @Column()
   tipo: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'longtext', nullable: true })
   imagem_base64: string;
+
+  @ManyToOne(() => Mercado)
+  @JoinColumn({ name: 'mercado_id' })
+  mercado: Mercado;
 
   @OneToMany(() => Preco, (preco) => preco.produto)
   precos: Preco[];
-
-  @ManyToOne(() => Mercado, { eager: true, nullable: false })
-  @JoinColumn({ name: 'mercado_id' })
-  mercado: Mercado;
 }
