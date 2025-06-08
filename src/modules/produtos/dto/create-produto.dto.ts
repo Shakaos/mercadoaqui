@@ -7,6 +7,9 @@ export class CreateProdutoDto {
   @IsString()
   categoria: string;
 
+  @IsNumber()
+  preco: number;
+
   @IsOptional()
   @IsString()
   tipo?: string;
