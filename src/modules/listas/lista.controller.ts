@@ -76,6 +76,11 @@ export class ListaController {
       (a, b) => a[1].total - b[1].total
     );
 
+    // Verifica se há mercados com preços
+    if (entradaOrdenada.length === 0) {
+      return [];
+    }
+
     const [mercadoVencedorNome, dados] = entradaOrdenada[0];
 
     const mercado = await this.mercadoRepo.findOne({
@@ -83,13 +88,12 @@ export class ListaController {
     });
 
     if (!mercado) {
-      throw new Error('Mercado não encontrado');
+      return { error: 'Mercado não encontrado' };
     }
 
     const novaLista = this.listaRepo.create({
       nome: `Comparação - ${new Date().toLocaleString('pt-BR')}`,
       mercado,
-      total: dados.total,
       criada_em: new Date(),
     });
 
