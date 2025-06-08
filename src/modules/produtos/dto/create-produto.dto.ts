@@ -1,4 +1,4 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsInt } from 'class-validator';
 
 export class CreateProdutoDto {
   @IsString()
@@ -13,4 +13,7 @@ export class CreateProdutoDto {
 
   @IsString()
   imagem_base64: string;
-} 
+
+  @IsInt()
+  mercado_id: number; // 👈 novo campo obrigatório
+}
