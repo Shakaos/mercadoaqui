@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Lista } from './lista.entity';
+import { Usuario } from '../usuarios/usuario.entity';
 import { ItemLista } from './item-lista.entity';
 import { Produto } from '../produtos/produto.entity';
 import { Preco } from '../precos/preco.entity';
@@ -29,31 +30,35 @@ export class ListaController {
 
     @InjectRepository(Mercado)
     private mercadoRepo: Repository<Mercado>,
+
+    @InjectRepository(Usuario)
+    private usuarioRepo: Repository<Usuario>,
   ) {}
 
   @Get()
   async listarHistorico() {
-    return this.listaRepo.find({
+    const listas = await this.listaRepo.find({
       relations: ['mercado'],
       order: { criada_em: 'DESC' },
     });
+
+    return listas;
   }
 
   @Post('/comparar')
   async compararListas(@Body() body: { produtos: number[] }) {
     const { produtos } = body;
 
-    if (!produtos || produtos.length === 0) return [];
+    if (!produtos || produtos.length === 0) {
+      return [];
+    }
 
     const precos = await this.precoRepo.find({
       where: { produto: { id: In(produtos) } },
       relations: ['produto', 'mercado'],
     });
 
-    const mercadosMap: Record<
-      string,
-      { total: number; produtos: Preco[] }
-    > = {};
+    const mercadosMap: Record<string, { total: number; produtos: Preco[] }> = {};
 
     for (const preco of precos) {
       const nomeMercado = preco.mercado.nome;
@@ -76,20 +81,26 @@ export class ListaController {
       where: { nome: mercadoVencedorNome },
     });
 
+    if (!mercadoEntity) {
+      throw new Error('Mercado não encontrado');
+    }
+
     const novaLista = this.listaRepo.create({
-      mercado: mercadoEntity,
       total: dados.total,
       criada_em: new Date(),
     });
 
+    // Atribuir o mercado manualmente
+    novaLista.mercado = mercadoEntity;
+
     const listaSalva = await this.listaRepo.save(novaLista);
 
-    const itens = dados.produtos.map(preco =>
+    const itens = dados.produtos.map((preco) =>
       this.itemListaRepo.create({
         lista: listaSalva,
         produto: preco.produto,
         preco: preco.valor,
-      }),
+      })
     );
 
     await this.itemListaRepo.save(itens);
@@ -100,7 +111,7 @@ export class ListaController {
       produtos: dados.produtos.map(p => ({
         nome: p.produto.nome,
         preco: p.valor,
-      })),
+      }))
     }));
   }
 }
