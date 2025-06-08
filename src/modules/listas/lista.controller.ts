@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Lista } from './lista.entity';
@@ -6,20 +6,17 @@ import { Usuario } from '../usuarios/usuario.entity';
 import { ItemLista } from './item-lista.entity';
 import { Produto } from '../produtos/produto.entity';
 import { Preco } from '../precos/preco.entity';
+import { Mercado } from '../mercados/mercado.entity';
 
 @Controller('historico')
 export class ListaController {
   constructor(
-    @InjectRepository(Lista)
-    private listaRepo: Repository<Lista>,
-    @InjectRepository(ItemLista)
-    private itemListaRepo: Repository<ItemLista>,
-    @InjectRepository(Produto)
-    private produtoRepo: Repository<Produto>,
-    @InjectRepository(Preco)
-    private precoRepo: Repository<Preco>,
-    @InjectRepository(Usuario)
-    private usuarioRepo: Repository<Usuario>,
+    @InjectRepository(Lista) private listaRepo: Repository<Lista>,
+    @InjectRepository(ItemLista) private itemListaRepo: Repository<ItemLista>,
+    @InjectRepository(Produto) private produtoRepo: Repository<Produto>,
+    @InjectRepository(Preco) private precoRepo: Repository<Preco>,
+    @InjectRepository(Mercado) private mercadoRepo: Repository<Mercado>,
+    @InjectRepository(Usuario) private usuarioRepo: Repository<Usuario>,
   ) {}
 
   @Get()
@@ -47,4 +44,29 @@ export class ListaController {
     }
     return historico;
   }
-} 
+
+  @Get('lista/:id')
+  async compararLista(@Param('id') id: number) {
+    const lista = await this.listaRepo.findOne({ where: { id }, relations: ['usuario'] });
+    const itens = await this.itemListaRepo.find({ where: { lista: { id } }, relations: ['produto'] });
+    const mercados = await this.mercadoRepo.find();
+
+    const comparacoes: any[] = [];
+
+    for (const mercado of mercados) {
+      let total = 0;
+      for (const item of itens) {
+        const preco = await this.precoRepo.findOne({ where: { produto: { id: item.produto.id }, mercado: { id: mercado.id } } });
+        if (preco) {
+          total += preco.preco * item.quantidade;
+        }
+      }
+      comparacoes.push({
+        mercado: mercado.nome,
+        total,
+      });
+    }
+
+    return comparacoes;
+  }
+}
