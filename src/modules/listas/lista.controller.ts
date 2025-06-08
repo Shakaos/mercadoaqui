@@ -23,16 +23,16 @@ export class ListaController {
     private itemListaRepo: Repository<ItemLista>,
 
     @InjectRepository(Produto)
-    private produtoRepo: Repository<Produto>,
+    private produtoRepo: Repository(Produto),
 
     @InjectRepository(Preco)
-    private precoRepo: Repository<Preco>,
+    private precoRepo: Repository(Preco),
 
     @InjectRepository(Mercado)
-    private mercadoRepo: Repository<Mercado>,
+    private mercadoRepo: Repository(Mercado),
 
     @InjectRepository(Usuario)
-    private usuarioRepo: Repository<Usuario>,
+    private usuarioRepo: Repository(Usuario),
   ) {}
 
   @Get()
@@ -49,49 +49,44 @@ export class ListaController {
   async compararListas(@Body() body: { produtos: number[] }) {
     const { produtos } = body;
 
-    if (!produtos || produtos.length === 0) {
-      return [];
-    }
+    if (!produtos || produtos.length === 0) return [];
 
     const precos = await this.precoRepo.find({
       where: { produto: { id: In(produtos) } },
       relations: ['produto', 'mercado'],
     });
 
-    const mercadosMap: Record<string, { total: number; produtos: Preco[] }> = {};
+    const mercadosMap: Record<string, { produtos: Preco[]; total: number }> = {};
 
     for (const preco of precos) {
-      const nomeMercado = preco.mercado.nome;
+      const nome = preco.mercado.nome;
 
-      if (!mercadosMap[nomeMercado]) {
-        mercadosMap[nomeMercado] = { total: 0, produtos: [] };
+      if (!mercadosMap[nome]) {
+        mercadosMap[nome] = { produtos: [], total: 0 };
       }
 
-      mercadosMap[nomeMercado].produtos.push(preco);
-      mercadosMap[nomeMercado].total += preco.valor;
+      mercadosMap[nome].produtos.push(preco);
+      mercadosMap[nome].total += preco.valor;
     }
 
-    const entradaOrdenada = Object.entries(mercadosMap).sort(
+    const ordenado = Object.entries(mercadosMap).sort(
       (a, b) => a[1].total - b[1].total
     );
 
-    const [mercadoVencedorNome, dados] = entradaOrdenada[0];
+    const [mercadoNome, dados] = ordenado[0];
 
-    const mercadoEntity = await this.mercadoRepo.findOne({
-      where: { nome: mercadoVencedorNome },
+    const mercado = await this.mercadoRepo.findOne({
+      where: { nome: mercadoNome },
     });
 
-    if (!mercadoEntity) {
-      throw new Error('Mercado não encontrado');
-    }
+    if (!mercado) throw new Error('Mercado não encontrado');
 
+    // Criar a lista sem campo "total"
     const novaLista = this.listaRepo.create({
-      total: dados.total,
+      nome: `Comparação - ${new Date().toLocaleString('pt-BR')}`,
+      mercado: mercado,
       criada_em: new Date(),
     });
-
-    // Atribuir o mercado manualmente
-    novaLista.mercado = mercadoEntity;
 
     const listaSalva = await this.listaRepo.save(novaLista);
 
@@ -99,19 +94,19 @@ export class ListaController {
       this.itemListaRepo.create({
         lista: listaSalva,
         produto: preco.produto,
-        preco: preco.valor,
+        quantidade: 1,
       })
     );
 
     await this.itemListaRepo.save(itens);
 
-    return entradaOrdenada.map(([mercado, dados]) => ({
-      mercado,
+    return ordenado.map(([nome, dados]) => ({
+      mercado: nome,
       total: dados.total,
       produtos: dados.produtos.map(p => ({
         nome: p.produto.nome,
         preco: p.valor,
-      }))
+      })),
     }));
   }
 }
