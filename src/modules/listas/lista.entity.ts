@@ -13,6 +13,9 @@ export class Lista {
   @Column({ type: 'varchar', length: 100 })
   nome: string;
 
+  @ManyToOne(() => Mercado, { eager: true })
+  mercado: Mercado;
+
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   criada_em: Date;
 } 
