@@ -11,8 +11,9 @@ export class CreateProdutoDto {
   @IsString()
   tipo?: string;
 
+  @IsOptional()
   @IsString()
-  imagem_base64: string;
+  imagem_base64?: string;
 
   @IsNumber()
   mercado_id: number; // deve bater com o nome desestruturado no controller
