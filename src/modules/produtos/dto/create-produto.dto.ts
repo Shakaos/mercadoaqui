@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt } from 'class-validator';
+import { IsString, IsOptional, IsNumber } from 'class-validator';
 
 export class CreateProdutoDto {
   @IsString()
@@ -14,6 +14,6 @@ export class CreateProdutoDto {
   @IsString()
   imagem_base64: string;
 
-  @IsInt()
-  mercado_id: number; // 👈 novo campo obrigatório
+  @IsNumber()
+  mercado_id: number; // deve bater com o nome desestruturado no controller
 }
