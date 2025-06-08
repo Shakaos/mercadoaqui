@@ -34,7 +34,7 @@ import { ItemLista } from './modules/listas/item-lista.entity';
       database: process.env.DB_NAME,
       entities: [Usuario, Produto, Preco, Mercado, CestaBasica, CestaProduto, Lista, ItemLista],
       logging: true,
-      process.env.NODE_ENV !== 'production',
+      synchronize: process.env.NODE_ENV !== 'production',
     }),
 
     // Módulo JWT global
