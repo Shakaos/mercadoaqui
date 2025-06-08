@@ -45,20 +45,24 @@ export class ProdutoController {
   async listarComPrecos() {
     const produtos = await this.produtoRepo.find({ relations: ['mercado'] });
     const precos = await this.precoRepo.find({ relations: ['produto', 'mercado'] });
-
+  
     return produtos.map(prod => {
       const relacionados = precos.filter(p => p.produto.id === prod.id);
-      const menorPreco = relacionados.sort((a, b) => a.preco - b.preco)[0];
+      const menorPreco = relacionados.sort((a, b) => a.valor - b.valor)[0];
       return {
         id: prod.id,
         nome: prod.nome,
         categoria: prod.categoria,
         tipo: prod.tipo,
-        preco: menorPreco?.preco ?? null,
-        mercado: prod.mercado ? { id: prod.mercado.id, nome: prod.mercado.nome } : null,
+        preco: menorPreco?.valor ?? null,
+        mercado: menorPreco?.mercado ? {
+          id: menorPreco.mercado.id,
+          nome: menorPreco.mercado.nome
+        } : null,
       };
     });
   }
+
 
   @Post()
   @UseGuards(JwtAuthGuard)
