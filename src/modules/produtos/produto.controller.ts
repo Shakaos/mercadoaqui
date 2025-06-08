@@ -1,8 +1,18 @@
-// produto.controller.ts
 import {
-  Controller, Get, Post, Body, Param, Patch, Delete,
-  UsePipes, ValidationPipe, UploadedFile, UseInterceptors,
-  UseGuards, NotFoundException,
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  UsePipes,
+  ValidationPipe,
+  UploadedFile,
+  UseInterceptors,
+  UseGuards,
+  NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -27,14 +37,9 @@ export class ProdutoController {
     private mercadoRepo: Repository<Mercado>,
   ) {}
 
-  @Get()
-  async listarTodos() {
-    return this.produtoRepo.find({ relations: ['mercado'] });
-  }
-
-  @Get('com-precos')
+  @Get('com-precos') // Coloque essa rota ANTES do ':id'
   async listarComPrecos() {
-    const produtos = await this.produtoRepo.find({ relations: ['mercado'] });
+    const produtos = await this.produtoRepo.find();
     const precos = await this.precoRepo.find({ relations: ['produto', 'mercado'] });
 
     return produtos.map(prod => {
@@ -55,6 +60,26 @@ export class ProdutoController {
     });
   }
 
+  @Get()
+  async listarTodos() {
+    return this.produtoRepo.find({ relations: ['mercado'] });
+  }
+
+  @Get(':id')
+  async buscarPorId(@Param('id') id: string) {
+    const idNum = Number(id);
+    if (isNaN(idNum)) {
+      throw new BadRequestException('ID inválido');
+    }
+
+    const produto = await this.produtoRepo.findOne({ where: { id: idNum }, relations: ['mercado'] });
+    if (!produto) {
+      throw new NotFoundException('Produto não encontrado');
+    }
+
+    return produto;
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
@@ -62,27 +87,34 @@ export class ProdutoController {
     const { mercado_id, ...dados } = body;
 
     const mercado = await this.mercadoRepo.findOne({ where: { id: mercado_id } });
-    if (!mercado) throw new NotFoundException('Mercado não encontrado');
+    if (!mercado) {
+      throw new NotFoundException('Mercado não encontrado');
+    }
 
     const novo = this.produtoRepo.create({ ...dados, mercado });
     return this.produtoRepo.save(novo);
   }
 
-  @Get(':id')
-  async buscarPorId(@Param('id') id: string) {
-    return this.produtoRepo.findOne({ where: { id: Number(id) }, relations: ['mercado'] });
-  }
-
   @Patch(':id')
   @UsePipes(new ValidationPipe())
   async editar(@Param('id') id: string, @Body() body: UpdateProdutoDto) {
-    await this.produtoRepo.update(id, body);
-    return this.produtoRepo.findOne({ where: { id: Number(id) } });
+    const idNum = Number(id);
+    if (isNaN(idNum)) {
+      throw new BadRequestException('ID inválido');
+    }
+
+    await this.produtoRepo.update(idNum, body);
+    return this.produtoRepo.findOne({ where: { id: idNum } });
   }
 
   @Delete(':id')
   async remover(@Param('id') id: string) {
-    await this.produtoRepo.delete(id);
+    const idNum = Number(id);
+    if (isNaN(idNum)) {
+      throw new BadRequestException('ID inválido');
+    }
+
+    await this.produtoRepo.delete(idNum);
     return { message: 'Produto removido com sucesso' };
   }
 
@@ -111,7 +143,7 @@ export class ProdutoController {
         }
         cb(null, true);
       },
-      limits: { fileSize: 5 * 1024 * 1024 },
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
     }),
   )
   async uploadImagem(@UploadedFile() file: any) {
