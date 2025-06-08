@@ -27,7 +27,8 @@ export class ProdutoService {
 
     return produtos.map(prod => {
       const relacionados = precos.filter(p => p.produto.id === prod.id);
-      const menorPreco = relacionados.sort((a, b) => a.preco - b.preco)[0];
+      const menorPreco = relacionados.sort((a, b) => a.valor - b.valor)[0];
+      preco: menorPreco?.valor ?? null,
       return {
         id: prod.id,
         nome: prod.nome,
