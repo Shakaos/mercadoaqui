@@ -93,7 +93,7 @@ export class ListaController {
   }
 
   @Post('/comparar')
-  async compararListas(@Body() body: { produtos: number[] }) {
+  async compararListas(@Body() body: { produtos: number[]; nome?: string })
     const { produtos } = body;
 
     if (!produtos || produtos.length === 0) {
@@ -139,9 +139,9 @@ export class ListaController {
     if (!mercado) {
       return { error: 'Mercado não encontrado' };
     }
-
+  
     const novaLista = this.listaRepo.create({
-      nome: `Comparação - ${new Date().toLocaleString('pt-BR')}`,
+      nome: body.nome || `Comparação - ${new Date().toLocaleString('pt-BR')}`,
       mercado,
       criada_em: new Date(),
       total: parsePreco(dados.total),
