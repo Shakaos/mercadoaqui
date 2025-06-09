@@ -145,6 +145,7 @@ async compararListas(@Body() body: { produtos: number[]; nome?: string }) {
     mercado,
     criada_em: new Date(),
     total: parsePreco(dados.total),
+    usuario, 
   });
 
   const listaSalva = await this.listaRepo.save(novaLista);
