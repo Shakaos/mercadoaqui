@@ -12,7 +12,7 @@ import { ListasModule } from '../listas/lista.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Usuario]),
-    ListaModule,
+    ListasModule,
 
     JwtModule.registerAsync({
       useFactory: () => ({
