@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Param, Patch, Post, Get, UsePipes, ValidationPipe } from '@nestjs/common';
+// mercadoaqui-api/src/modules/usuarios/usuarios.controller.ts
+import {
+  Body,
+  Controller,
+  Delete,
+  Param,
+  Patch,
+  Post,
+  Get,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
@@ -42,5 +53,10 @@ export class UsuariosController {
   @UsePipes(new ValidationPipe())
   atualizarPorId(@Param('id') id: string, @Body() body: UpdateUsuarioDto) {
     return this.usuariosService.atualizarPerfil(Number(id), body.nome, body.email);
+  }
+
+  @Patch('token-push')
+  atualizarTokenPush(@Body() body: { id: number; expoPushToken: string }) {
+    return this.usuariosService.atualizarTokenPush(body.id, body.expoPushToken);
   }
 }
