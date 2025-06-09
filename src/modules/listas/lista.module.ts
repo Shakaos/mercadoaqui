@@ -11,5 +11,6 @@ import { Mercado } from '../mercados/mercado.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([Lista, ItemLista, Usuario, Produto, Preco, Mercado])],
   controllers: [ListaController],
+  exports: [TypeOrmModule],
 })
 export class ListaModule {} 
