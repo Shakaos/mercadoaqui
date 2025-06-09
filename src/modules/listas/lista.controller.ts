@@ -69,14 +69,13 @@ export class ListaController {
       }
 
       mercadosMap[nomeMercado].produtos.push(preco);
-      mercadosMap[nomeMercado].total += preco.valor;
+      mercadosMap[nomeMercado].total += Number(preco.valor || 0);
     }
 
-    const entradaOrdenada = Object.entries(mercadosMap).sort(
-      (a, b) => a[1].total - b[1].total
-    );
+    const entradaOrdenada = Object.entries(mercadosMap)
+      .filter(([_, dados]) => dados.total > 0)
+      .sort((a, b) => a[1].total - b[1].total);
 
-    // Verifica se há mercados com preços
     if (entradaOrdenada.length === 0) {
       return [];
     }
@@ -109,12 +108,12 @@ export class ListaController {
 
     await this.itemListaRepo.save(itens);
 
-    return entradaOrdenada.map(([mercado, dados]) => ({
-      mercado,
-      total: dados.total,
+    return entradaOrdenada.map(([nomeMercado, dados]) => ({
+      mercado: nomeMercado,
+      total: Number(dados.total || 0),
       produtos: dados.produtos.map(p => ({
         nome: p.produto.nome,
-        preco: p.valor,
+        preco: Number(p.valor || 0),
       })),
     }));
   }
