@@ -11,6 +11,7 @@ import { APP_GUARD } from '@nestjs/core';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Usuario]),
+    ListasModule,
 
     JwtModule.registerAsync({
       useFactory: () => ({
