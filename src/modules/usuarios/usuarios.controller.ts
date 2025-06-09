@@ -59,9 +59,10 @@ export class UsuariosController {
   atualizarToken(@Body() body: { id: number; token: string }) {
   return this.usuariosService.atualizarTokenExpoPush(body.id, body.token);
 }
-
+  
   @Patch('token-push')
   atualizarTokenPush(@Body() body: { id: number; expoPushToken: string }) {
-    return this.usuariosService.atualizarTokenPush(body.id, body.expoPushToken);
+    return this.usuariosService.atualizarTokenExpoPush(body.id, body.expoPushToken);
   }
+
 }
