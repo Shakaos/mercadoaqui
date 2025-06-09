@@ -1,4 +1,3 @@
-
 import {
   Controller,
   Get,
@@ -17,18 +16,12 @@ import { Mercado } from '../mercados/mercado.entity';
 
 function parsePreco(valor: string | number): number {
   if (typeof valor === 'string') {
-    // Remove símbolo R$ e espaços
     const limpo = valor.replace('R$', '').trim();
-
-    // Se tiver vírgula como separador decimal (ex: 30,90)
     if (limpo.includes(',')) {
       return parseFloat(limpo.replace('.', '').replace(',', '.')) || 0;
     }
-
-    // Se já estiver no formato correto com ponto decimal (ex: 30.90)
     return parseFloat(limpo) || 0;
   }
-
   return Number(valor) || 0;
 }
 
@@ -57,6 +50,15 @@ export class ListaController {
   @Get()
   async listarHistorico() {
     return this.listaRepo.find({
+      relations: ['usuario', 'mercado'],
+      order: { criada_em: 'DESC' },
+    });
+  }
+
+  @Get('usuario/:id')
+  async listarHistoricoPorUsuario(@Param('id') id: number) {
+    return this.listaRepo.find({
+      where: { usuario: { id } },
       relations: ['usuario', 'mercado'],
       order: { criada_em: 'DESC' },
     });
@@ -93,79 +95,72 @@ export class ListaController {
   }
 
   @Post('/comparar')
-async compararListas(@Body() body: { produtos: number[]; nome?: string }) {
-  const { produtos, nome } = body;
+  async compararListas(@Body() body: { produtos: number[]; nome?: string; usuarioId?: number }) {
+    const { produtos, nome, usuarioId } = body;
 
-  if (!produtos || produtos.length === 0) {
-    return [];
-  }
-
-  const precos = await this.precoRepo.find({
-    where: { produto: { id: In(produtos) } },
-    relations: ['produto', 'mercado'],
-  });
-
-  const mercadosMap: Record<
-    string,
-    { total: number; produtos: Preco[] }
-  > = {};
-
-  for (const preco of precos) {
-    const nomeMercado = preco.mercado.nome;
-
-    if (!mercadosMap[nomeMercado]) {
-      mercadosMap[nomeMercado] = { total: 0, produtos: [] };
+    if (!produtos || produtos.length === 0 || !usuarioId) {
+      return { error: 'Produtos ou usuário inválido.' };
     }
 
-    const valorNumerico = parsePreco(preco.valor);
-    mercadosMap[nomeMercado].produtos.push(preco);
-    mercadosMap[nomeMercado].total += valorNumerico;
-  }
+    const usuario = await this.usuarioRepo.findOne({ where: { id: usuarioId } });
+    if (!usuario) return { error: 'Usuário não encontrado.' };
 
-  const entradaOrdenada = Object.entries(mercadosMap)
-    .filter(([_, dados]) => dados.total > 0)
-    .sort((a, b) => a[1].total - b[1].total);
+    const precos = await this.precoRepo.find({
+      where: { produto: { id: In(produtos) } },
+      relations: ['produto', 'mercado'],
+    });
 
-  if (entradaOrdenada.length === 0) {
-    return [];
-  }
+    const mercadosMap: Record<string, { total: number; produtos: Preco[] }> = {};
 
-  const [mercadoVencedorNome, dados] = entradaOrdenada[0];
+    for (const preco of precos) {
+      const nomeMercado = preco.mercado.nome;
 
-  const mercado = await this.mercadoRepo.findOne({
-    where: { nome: mercadoVencedorNome },
-  });
+      if (!mercadosMap[nomeMercado]) {
+        mercadosMap[nomeMercado] = { total: 0, produtos: [] };
+      }
 
-  if (!mercado) {
-    return { error: 'Mercado não encontrado' };
-  }
+      const valorNumerico = parsePreco(preco.valor);
+      mercadosMap[nomeMercado].produtos.push(preco);
+      mercadosMap[nomeMercado].total += valorNumerico;
+    }
 
-  const novaLista = this.listaRepo.create({
-    nome: nome || `Comparação - ${new Date().toLocaleString('pt-BR')}`,
-    mercado,
-    criada_em: new Date(),
-    total: parsePreco(dados.total),
-    usuario, 
-  });
+    const entradaOrdenada = Object.entries(mercadosMap)
+      .filter(([_, dados]) => dados.total > 0)
+      .sort((a, b) => a[1].total - b[1].total);
 
-  const listaSalva = await this.listaRepo.save(novaLista);
+    if (entradaOrdenada.length === 0) return [];
 
-  const itens = dados.produtos.map((preco) =>
-    this.itemListaRepo.create({
-      lista: listaSalva,
-      produto: preco.produto,
-      quantidade: 1,
-    })
-  );
+    const [mercadoVencedorNome, dados] = entradaOrdenada[0];
 
-  await this.itemListaRepo.save(itens);
+    const mercado = await this.mercadoRepo.findOne({ where: { nome: mercadoVencedorNome } });
+    if (!mercado) return { error: 'Mercado não encontrado' };
 
-  return entradaOrdenada.map(([nomeMercado, dados]) => ({
-    mercado: nomeMercado,
-    total: parsePreco(dados.total),
-    produtos: dados.produtos.map(p => ({
-      nome: p.produto.nome,
-      preco: parsePreco(p.valor),
+    const novaLista = this.listaRepo.create({
+      nome: nome || `Comparação - ${new Date().toLocaleString('pt-BR')}`,
+      mercado,
+      criada_em: new Date(),
+      total: parsePreco(dados.total),
+      usuario,
+    });
+
+    const listaSalva = await this.listaRepo.save(novaLista);
+
+    const itens = dados.produtos.map(preco =>
+      this.itemListaRepo.create({
+        lista: listaSalva,
+        produto: preco.produto,
+        quantidade: 1,
+      })
+    );
+
+    await this.itemListaRepo.save(itens);
+
+    return entradaOrdenada.map(([nomeMercado, dados]) => ({
+      mercado: nomeMercado,
+      total: parsePreco(dados.total),
+      produtos: dados.produtos.map(p => ({
+        nome: p.produto.nome,
+        preco: parsePreco(p.valor),
       })),
     }));
   }
