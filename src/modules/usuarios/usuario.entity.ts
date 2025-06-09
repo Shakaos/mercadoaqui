@@ -19,7 +19,7 @@ export class Usuario {
   tipo: string; // Sempre será 'cliente'
 
   @Column({ nullable: true })
-  expoPushToken: string; // Token de notificação push
+  expoPushToken: string;
 
   @CreateDateColumn({ name: 'criado_em' })
   criadoEm: Date;
