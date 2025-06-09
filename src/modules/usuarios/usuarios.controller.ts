@@ -43,9 +43,4 @@ export class UsuariosController {
   atualizarPorId(@Param('id') id: string, @Body() body: UpdateUsuarioDto) {
     return this.usuariosService.atualizarPerfil(Number(id), body.nome, body.email);
   }
-
-  @Delete(':id')
-  remover(@Param('id') id: string) {
-    return this.usuariosService.deletarConta(Number(id));
-  }
 }
