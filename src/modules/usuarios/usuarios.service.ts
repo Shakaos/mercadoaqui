@@ -1,7 +1,9 @@
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Usuario } from './usuario.entity';
+import { Lista } from '../listas/lista.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 
@@ -10,6 +12,10 @@ export class UsuariosService {
   constructor(
     @InjectRepository(Usuario)
     private readonly usuariosRepo: Repository<Usuario>,
+
+    @InjectRepository(Lista)
+    private readonly listaRepo: Repository<Lista>,
+
     private readonly jwtService: JwtService,
   ) {}
 
@@ -58,13 +64,17 @@ export class UsuariosService {
     await this.usuariosRepo.update(id, updateData);
     return { message: 'Perfil atualizado' };
   }
-  
+
   async deletarConta(id: number) {
+    console.log('Excluindo listas vinculadas ao usuário ID:', id);
+    await this.listaRepo.delete({ usuario: { id } });
+
     const resultado = await this.usuariosRepo.delete(id);
     if (resultado.affected === 0) throw new NotFoundException('Usuário não encontrado');
+
     return { message: 'Conta excluída com sucesso' };
   }
-  
+
   async listarTodos() {
     return this.usuariosRepo.find();
   }
