@@ -79,11 +79,15 @@ export class UsuariosService {
     return this.usuariosRepo.find();
   }
 
-  async atualizarTokenExpoPush(id: number, token: string) {
-  const usuario = await this.usuarioRepo.findOne({ where: { id } });
+async atualizarTokenExpoPush(id: number, token: string) {
+  const usuario = await this.usuariosRepo.findOne({ where: { id } });
   if (!usuario) {
     throw new Error('Usuário não encontrado');
   }
+
+  (usuario as any).expoPushToken = token; // Adicione essa propriedade no banco também
+  return this.usuariosRepo.save(usuario);
+}
 
   usuario.expoPushToken = token;
   return this.usuarioRepo.save(usuario);
