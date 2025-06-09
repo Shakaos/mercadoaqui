@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Body,
+  Param,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
@@ -51,6 +52,36 @@ export class ListaController {
       relations: ['usuario', 'mercado'],
       order: { criada_em: 'DESC' },
     });
+  }
+
+  @Get(':id')
+  async obterDetalhes(@Param('id') id: number) {
+    const lista = await this.listaRepo.findOne({
+      where: { id },
+      relations: ['usuario', 'mercado'],
+    });
+
+    if (!lista) return { error: 'Lista não encontrada' };
+
+    const itens = await this.itemListaRepo.find({
+      where: { lista: { id } },
+      relations: ['produto'],
+    });
+
+    return {
+      lista: {
+        id: lista.id,
+        nome: lista.nome,
+        mercado: lista.mercado?.nome,
+        criada_em: lista.criada_em,
+        total: lista.total,
+      },
+      produtos: itens.map(item => ({
+        id: item.produto.id,
+        nome: item.produto.nome,
+        quantidade: item.quantidade || 1,
+      })),
+    };
   }
 
   @Post('/comparar')
@@ -105,6 +136,7 @@ export class ListaController {
       nome: `Comparação - ${new Date().toLocaleString('pt-BR')}`,
       mercado,
       criada_em: new Date(),
+      total: parsePreco(dados.total),
     });
 
     const listaSalva = await this.listaRepo.save(novaLista);
