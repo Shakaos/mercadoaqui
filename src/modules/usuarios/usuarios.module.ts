@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { RolesGuard } from './roles.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { ListasModule } from '../listas/lista.module';
 
 @Module({
   imports: [
