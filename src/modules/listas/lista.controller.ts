@@ -17,10 +17,18 @@ import { Mercado } from '../mercados/mercado.entity';
 
 function parsePreco(valor: string | number): number {
   if (typeof valor === 'string') {
-    return parseFloat(
-      valor.replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.')
-    ) || 0;
+    // Remove símbolo R$ e espaços
+    const limpo = valor.replace('R$', '').trim();
+
+    // Se tiver vírgula como separador decimal (ex: 30,90)
+    if (limpo.includes(',')) {
+      return parseFloat(limpo.replace('.', '').replace(',', '.')) || 0;
+    }
+
+    // Se já estiver no formato correto com ponto decimal (ex: 30.90)
+    return parseFloat(limpo) || 0;
   }
+
   return Number(valor) || 0;
 }
 
