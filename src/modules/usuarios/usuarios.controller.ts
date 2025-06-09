@@ -23,8 +23,8 @@ export class UsuariosController {
     return this.usuariosService.atualizarPerfil(body.id, body.nome, body.email);
   }
 
-  @Delete('excluir/:id')
-  excluir(@Param('id') id: string) {
+  @Delete('remover/:id')
+  remover(@Param('id') id: string) {
     return this.usuariosService.deletarConta(Number(id));
   }
 
