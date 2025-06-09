@@ -85,13 +85,10 @@ async atualizarTokenExpoPush(id: number, token: string) {
     throw new Error('Usuário não encontrado');
   }
 
-  (usuario as any).expoPushToken = token; // Adicione essa propriedade no banco também
+  usuario.expoPushToken = token;
   return this.usuariosRepo.save(usuario);
 }
 
-  usuario.expoPushToken = token;
-  return this.usuarioRepo.save(usuario);
-}
 
   async buscarPorId(id: number) {
     const usuario = await this.usuariosRepo.findOne({ where: { id } });
