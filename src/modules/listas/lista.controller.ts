@@ -93,79 +93,78 @@ export class ListaController {
   }
 
   @Post('/comparar')
-  async compararListas(@Body() body: { produtos: number[]; nome?: string })
-    const { produtos } = body;
+async compararListas(@Body() body: { produtos: number[]; nome?: string }) {
+  const { produtos, nome } = body;
 
-    if (!produtos || produtos.length === 0) {
-      return [];
-    }
-
-    const precos = await this.precoRepo.find({
-      where: { produto: { id: In(produtos) } },
-      relations: ['produto', 'mercado'],
-    });
-
-    const mercadosMap: Record<
-      string,
-      { total: number; produtos: Preco[] }
-    > = {};
-
-    for (const preco of precos) {
-      const nomeMercado = preco.mercado.nome;
-
-      if (!mercadosMap[nomeMercado]) {
-        mercadosMap[nomeMercado] = { total: 0, produtos: [] };
-      }
-
-      const valorNumerico = parsePreco(preco.valor);
-      mercadosMap[nomeMercado].produtos.push(preco);
-      mercadosMap[nomeMercado].total += valorNumerico;
-    }
-
-    const entradaOrdenada = Object.entries(mercadosMap)
-      .filter(([_, dados]) => dados.total > 0)
-      .sort((a, b) => a[1].total - b[1].total);
-
-    if (entradaOrdenada.length === 0) {
-      return [];
-    }
-
-    const [mercadoVencedorNome, dados] = entradaOrdenada[0];
-
-    const mercado = await this.mercadoRepo.findOne({
-      where: { nome: mercadoVencedorNome },
-    });
-
-    if (!mercado) {
-      return { error: 'Mercado não encontrado' };
-    }
-  
-    const novaLista = this.listaRepo.create({
-      nome: body.nome || `Comparação - ${new Date().toLocaleString('pt-BR')}`,
-      mercado,
-      criada_em: new Date(),
-      total: parsePreco(dados.total),
-    });
-
-    const listaSalva = await this.listaRepo.save(novaLista);
-
-    const itens = dados.produtos.map((preco) =>
-      this.itemListaRepo.create({
-        lista: listaSalva,
-        produto: preco.produto,
-        quantidade: 1,
-      })
-    );
-
-    await this.itemListaRepo.save(itens);
-
-    return entradaOrdenada.map(([nomeMercado, dados]) => ({
-      mercado: nomeMercado,
-      total: parsePreco(dados.total),
-      produtos: dados.produtos.map(p => ({
-        nome: p.produto.nome,
-        preco: parsePreco(p.valor),
-      })),
-    }));
+  if (!produtos || produtos.length === 0) {
+    return [];
   }
+
+  const precos = await this.precoRepo.find({
+    where: { produto: { id: In(produtos) } },
+    relations: ['produto', 'mercado'],
+  });
+
+  const mercadosMap: Record<
+    string,
+    { total: number; produtos: Preco[] }
+  > = {};
+
+  for (const preco of precos) {
+    const nomeMercado = preco.mercado.nome;
+
+    if (!mercadosMap[nomeMercado]) {
+      mercadosMap[nomeMercado] = { total: 0, produtos: [] };
+    }
+
+    const valorNumerico = parsePreco(preco.valor);
+    mercadosMap[nomeMercado].produtos.push(preco);
+    mercadosMap[nomeMercado].total += valorNumerico;
+  }
+
+  const entradaOrdenada = Object.entries(mercadosMap)
+    .filter(([_, dados]) => dados.total > 0)
+    .sort((a, b) => a[1].total - b[1].total);
+
+  if (entradaOrdenada.length === 0) {
+    return [];
+  }
+
+  const [mercadoVencedorNome, dados] = entradaOrdenada[0];
+
+  const mercado = await this.mercadoRepo.findOne({
+    where: { nome: mercadoVencedorNome },
+  });
+
+  if (!mercado) {
+    return { error: 'Mercado não encontrado' };
+  }
+
+  const novaLista = this.listaRepo.create({
+    nome: nome || `Comparação - ${new Date().toLocaleString('pt-BR')}`,
+    mercado,
+    criada_em: new Date(),
+    total: parsePreco(dados.total),
+  });
+
+  const listaSalva = await this.listaRepo.save(novaLista);
+
+  const itens = dados.produtos.map((preco) =>
+    this.itemListaRepo.create({
+      lista: listaSalva,
+      produto: preco.produto,
+      quantidade: 1,
+    })
+  );
+
+  await this.itemListaRepo.save(itens);
+
+  return entradaOrdenada.map(([nomeMercado, dados]) => ({
+    mercado: nomeMercado,
+    total: parsePreco(dados.total),
+    produtos: dados.produtos.map(p => ({
+      nome: p.produto.nome,
+      preco: parsePreco(p.valor),
+    })),
+  }));
 }
