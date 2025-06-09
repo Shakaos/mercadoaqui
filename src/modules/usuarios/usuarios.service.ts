@@ -79,6 +79,16 @@ export class UsuariosService {
     return this.usuariosRepo.find();
   }
 
+  async atualizarTokenExpoPush(id: number, token: string) {
+  const usuario = await this.usuarioRepo.findOne({ where: { id } });
+  if (!usuario) {
+    throw new Error('Usuário não encontrado');
+  }
+
+  usuario.expoPushToken = token;
+  return this.usuarioRepo.save(usuario);
+}
+
   async buscarPorId(id: number) {
     const usuario = await this.usuariosRepo.findOne({ where: { id } });
     if (!usuario) throw new NotFoundException('Usuário não encontrado');
