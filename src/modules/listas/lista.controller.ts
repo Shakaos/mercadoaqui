@@ -165,6 +165,7 @@ async compararListas(@Body() body: { produtos: number[]; nome?: string }) {
     produtos: dados.produtos.map(p => ({
       nome: p.produto.nome,
       preco: parsePreco(p.valor),
-    })),
-  }));
+      })),
+    }));
+  }
 }
