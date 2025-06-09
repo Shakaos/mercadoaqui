@@ -16,7 +16,9 @@ import { Mercado } from '../mercados/mercado.entity';
 
 function parsePreco(valor: string | number): number {
   if (typeof valor === 'string') {
-    return Number(valor.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+    return parseFloat(
+      valor.replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.')
+    ) || 0;
   }
   return Number(valor) || 0;
 }
@@ -119,7 +121,7 @@ export class ListaController {
 
     return entradaOrdenada.map(([nomeMercado, dados]) => ({
       mercado: nomeMercado,
-      total: Number(dados.total || 0),
+      total: parsePreco(dados.total),
       produtos: dados.produtos.map(p => ({
         nome: p.produto.nome,
         preco: parsePreco(p.valor),
