@@ -1,3 +1,4 @@
+
 import {
   Controller,
   Get,
@@ -12,6 +13,13 @@ import { ItemLista } from './item-lista.entity';
 import { Produto } from '../produtos/produto.entity';
 import { Preco } from '../precos/preco.entity';
 import { Mercado } from '../mercados/mercado.entity';
+
+function parsePreco(valor: string | number): number {
+  if (typeof valor === 'string') {
+    return Number(valor.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+  }
+  return Number(valor) || 0;
+}
 
 @Controller('historico')
 export class ListaController {
@@ -68,8 +76,9 @@ export class ListaController {
         mercadosMap[nomeMercado] = { total: 0, produtos: [] };
       }
 
+      const valorNumerico = parsePreco(preco.valor);
       mercadosMap[nomeMercado].produtos.push(preco);
-      mercadosMap[nomeMercado].total += Number(preco.valor || 0);
+      mercadosMap[nomeMercado].total += valorNumerico;
     }
 
     const entradaOrdenada = Object.entries(mercadosMap)
@@ -113,7 +122,7 @@ export class ListaController {
       total: Number(dados.total || 0),
       produtos: dados.produtos.map(p => ({
         nome: p.produto.nome,
-        preco: Number(p.valor || 0),
+        preco: parsePreco(p.valor),
       })),
     }));
   }
