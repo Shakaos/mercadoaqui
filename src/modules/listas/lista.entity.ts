@@ -24,9 +24,6 @@ export class Lista {
   @JoinColumn({ name: 'mercado_id' })
   mercado: Mercado;
 
-  @Column({ nullable: true })
-  mercado_id: number;
-
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   total: number;
 
